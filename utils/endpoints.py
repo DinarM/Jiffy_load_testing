@@ -245,3 +245,208 @@ async def mark_returning(session, authorization_token, warehouse_id='ad253466-cf
     
     async with session.post(url, headers=headers, json=json_data) as response:
         return await response.json()
+
+async def picking_auth(session, token):
+    '''
+    Асинхронно отправляет запрос на аутентификацию по токену
+    и извлекает access_token из ответа.
+    '''
+    url = URL.AUTH_TOKEN
+    headers = {
+        'accept': 'application/json, text/plain, */*',
+        'content-type': 'application/json'
+    }
+
+    body_data = {
+        'token': token
+    }
+
+    async with session.post(url, headers=headers, json=body_data) as response:
+        if response.status == 200:
+            data = await response.json()
+            token = f'Bearer {data.get("data", {}).get("access_token")}'
+            print('Access Token получен')
+            return token
+        else:
+            print(f'Ошибка получения токена. HTTP статус: {response.status}')
+            return None
+
+async def warehouse_auth(session, authorization_token, warehouse_code='VAN1'):
+    '''
+    Асинхронно отправляет запрос на аутентификацию на складе.
+    Генерирует случайный UUID для terminal_id.
+    '''
+    url = URL.WAREHOUSE_AUTH
+    headers = {
+        'accept': 'application/json, text/plain, */*',
+        'content-type': 'application/json',
+        'authorization': authorization_token
+    }
+
+    body_data = {
+        'warehouseCode': warehouse_code,
+        'currentTerminalId': str(uuid.uuid4())
+    }
+
+    async with session.post(url, headers=headers, json=body_data) as response:
+        data = await response.json()
+        if response.status == 200:
+            print('Аутентификация на складе успешна')
+            return data
+        elif response.status == 401 and data.get('code') == 'USER_ALREADY_LOGGED':
+            print('Пикер уже аутентифицировался на складе')
+            return data
+        else:
+            print(f'Ошибка аутентификации на складе. HTTP статус: {response.status}')
+            return None
+
+async def get_unfinished_orders(session, authorization_token):
+    '''
+    Асинхронно получает список незавершенных заказов для сборки.
+    '''
+    url = URL.UNFINISHED_ORDERS
+    headers = {
+        'accept': 'application/json, text/plain, */*',
+        'authorization': authorization_token
+    }
+
+    async with session.get(url, headers=headers) as response:
+        if response.status == 200:
+            data = await response.json()
+            # print('Список незавершенных заказов получен')
+            return data
+        else:
+            print(f'Ошибка получения списка заказов. HTTP статус: {response.status}')
+            return None
+
+async def assign_orders(session, authorization_token):
+    '''
+    Асинхронно отправляет PUT-запрос на назначение заказов для сборки.
+    '''
+    url = URL.ASSIGN_ORDERS
+    headers = {
+        'accept': 'application/json, text/plain, */*',
+        'authorization': authorization_token
+    }
+
+    async with session.put(url, headers=headers) as response:
+        if response.status == 200 or response.status == 404:
+            data = await response.json()
+            # print('Заказы успешно назначены')
+            return data
+        else:
+            print(f'Ошибка назначения заказов. HTTP статус: {response.status}')
+            return None
+
+async def get_next_item(session, authorization_token, order_id):
+    '''
+    Асинхронно получает следующий товар для сборки в заказе.
+    
+    Args:
+        session: aiohttp клиент сессия
+        authorization_token: токен авторизации
+        order_id: ID заказа для сборки
+    '''
+    url = URL.NEXT_ITEM.format(order_id)
+    headers = {
+        'accept': 'application/json, text/plain, */*',
+        'authorization': authorization_token
+    }
+
+    async with session.get(url, headers=headers) as response:
+        if response.status == 200:
+            data = await response.json()
+            print(f'Получен следующий товар для заказа {order_id}')
+            return data
+        else:
+            print(f'Ошибка получения следующего товара. HTTP статус: {response.status}')
+            return None
+
+async def scan_item(session, authorization_token, item_id, barcode, quantity=1):
+    '''
+    Асинхронно отправляет данные сканирования товара.
+    
+    Args:
+        session: aiohttp клиент сессия
+        authorization_token: токен авторизации
+        item_id: ID товара для сканирования
+        barcode: штрихкод товара
+        quantity: количество товара (по умолчанию 1)
+    '''
+    url = URL.SCAN_ITEM.format(item_id)
+    headers = {
+        'accept': 'application/json, text/plain, */*',
+        'content-type': 'application/json',
+        'authorization': authorization_token
+    }
+
+    body_data = {
+        'barcode': barcode,
+        'quantity': quantity
+    }
+
+    async with session.post(url, headers=headers, json=body_data) as response:
+        if response.status == 204:
+            print(f'Товар {barcode} успешно отсканирован')
+        else:
+            print(f'Ошибка сканирования товара. HTTP статус: {response.status}')
+
+async def pack_order(session, authorization_token, order_id, package_count=2):
+    '''
+    Асинхронно отправляет запрос на упаковку заказа.
+    
+    Args:
+        session: aiohttp клиент сессия
+        authorization_token: токен авторизации
+        order_id: ID заказа для упаковки
+        package_count: количество упаковок/пакетов
+    '''
+    url = URL.PACK_ORDER.format(order_id)
+    headers = {
+        'accept': 'application/json, text/plain, */*',
+        'content-type': 'application/json',
+        'authorization': authorization_token
+    }
+
+    body_data = {
+        'count': package_count
+    }
+
+    async with session.put(url, headers=headers, json=body_data) as response:
+        if response.status == 200:
+            data = await response.json()
+            print(f'Заказ {order_id} успешно упакован в {package_count} пакет(ов)')
+            return data
+        else:
+            print(f'Ошибка упаковки заказа. HTTP статус: {response.status}')
+            return None
+
+async def finish_order(session, authorization_token, order_id, barcode='2'):
+    '''
+    Асинхронно отправляет запрос на завершение заказа.
+    
+    Args:
+        session: aiohttp клиент сессия
+        authorization_token: токен авторизации
+        order_id: ID заказа для завершения
+        barcode: штрихкод места хранения
+    '''
+    url = URL.FINISH_ORDER.format(order_id)
+    headers = {
+        'accept': 'application/json, text/plain, */*',
+        'content-type': 'application/json',
+        'authorization': authorization_token
+    }
+
+    body_data = {
+        'barcode': barcode
+    }
+
+    async with session.put(url, headers=headers, json=body_data) as response:
+        if response.status == 200:
+            data = await response.json()
+            print(f'Заказ {order_id} успешно завершен')
+            return data
+        else:
+            print(f'Ошибка завершения заказа. HTTP статус: {response.status}. Тело ответа {await response.json()}')
+            return None

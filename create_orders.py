@@ -10,7 +10,7 @@ async def main(token):
     start_time = time.perf_counter()  # Засекаем время старта
     tasks = []
     async with aiohttp.ClientSession() as session:
-        for i in range(1, 2):  # Создаем 25 асинхронных задач
+        for i in range(1, 150):  # Создаем 25 асинхронных задач
             tasks.append(send_request(session, i, authorization_token=token))
         await asyncio.gather(*tasks)
     end_time = time.perf_counter()  # Засекаем время завершения
