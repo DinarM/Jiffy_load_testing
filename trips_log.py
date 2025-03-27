@@ -1,7 +1,6 @@
 import asyncio
 import time
 import aiohttp
-import json
 
 from utils.endpoints import access_token
 

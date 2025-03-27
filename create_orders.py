@@ -13,6 +13,7 @@ async def main(token):
         for i in range(1, 150):  # Создаем 25 асинхронных задач
             tasks.append(send_request(session, i, authorization_token=token))
         await asyncio.gather(*tasks)
+        await asyncio.sleep(5)
     end_time = time.perf_counter()  # Засекаем время завершения
     print(f"Все заказы созданы за {end_time - start_time:.2f} секунд.")
 

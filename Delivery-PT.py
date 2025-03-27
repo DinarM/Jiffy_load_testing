@@ -1,20 +1,22 @@
 import uuid
-from locust import HttpUser, task, between, events
+from locust import HttpUser, constant, task, between, events
 from locust.clients import HttpSession
 
 from utils.endpoints import verify_customer
 
 # Список курьеров можно ебануть больше
-COURIERS = [
-    {"phone": "0591707617"},
-    {"phone": "06731579222"},
-    {"phone": "07112233122"},
-    {"phone": "07112233124"},
-    {"phone": "07112233123"},
+# phone_numbers = [
+#     '0591707617', '06731579222', '07112233122', '07112233124', '07112233123',
+#     '09233333333', '02494270000', '02494270001', '02494270002',
+#     '02494270003', '02494270004', '02494270005', '02494270006', '02494270008', '02494270012', '02494270013', '02494270014', '02494270015', '02494270016', '02494270017'
+# ]
+phone_numbers = [
+    '0591707617', '06731579222', '07112233122', '07112233124', '07112233123',
+    '09233333333', '02494270000', '02494270001', '02494270002',
+    '02494270003', '02494270004', '02494270005', '02494270006', '02494270008', '02494270012', '02494270013', '02494270014', '02494270015', '02494270016', '02494270017'
 ]
 
-# Данные для создания заказа (взято из data.py - ничего не менял)
-CREATE_ORDER_DATA = {"order":{"customer_id":"2fb2146c-c2d4-4be4-9464-792ca9981dd0","currency":"gbp","warehouse_code":"VAN1","delivery_method":"JIFFY_DELIVERY","client_source":"App","save_card":True,"deliveries":[{"base_total":25998,"discount_total":0,"is_delivery_free":False,"paid_bonuses":0,"paid_total":278098,"promocode":None,"promocode_discount":0,"service_fee":0,"should_use_bonuses":False,"mechanic":"ON_DEMAND","items":[{"base_price":17999,"discount_amount":0,"image":"https://s3.eu-west-2.amazonaws.com/catalog-dev.jiffy-software.com/offers/7d509194-9056-4a70-9aba-e98971a294aa.webp","name":"Dinar grocery","paid_bonuses":0,"paid_price":17999,"promocode_discount_amount":0,"requested_quantity":1,"sku":"CD3994268902","weight":0,"product_id":"5257","price_per_unit":"1x"},{"base_price":7999,"discount_amount":0,"image":"https://s3.eu-west-2.amazonaws.com/catalog-dev.jiffy-software.com/offers/388ea6b7-cea7-4d01-b625-cbf9b5c4c9e5.webp","name":"Dinar multibuy","paid_bonuses":0,"paid_price":7999,"promocode_discount_amount":0,"requested_quantity":1,"sku":"CD7008992196","weight":0,"product_id":"5252","price_per_unit":"1x"}],"delivery_price":252100,"tips_amount":0}],"payment":{"payment_method":"CASH"},"customerCash":0},"recipient":{"full_name":"Kosher","email":"erp1@mailto.plus","phone":"09991579247"},"address":{"city":"Abu Dhabi","country_id":"AE","region":"Abu Dhabi","address_1":"6-36 Al Bda' Street, Abu Dhabi, ARE","address_2":"Bulding 1","building":"1","floor":"","apartment":"","latitude":24.413581106034854,"longitude":54.57066532312135,"zip":"23240","comment":"","instructions":[],"notes":"Bulding 1"}}
+COURIERS = [{"phone": phone} for phone in phone_numbers]
 
 # URL-адреса (взято из urls.py - не выносил в параметры запуска)
 STAGE = "stage"
@@ -32,8 +34,9 @@ URL = {
     "CREATE_ORDER": f"https://api2-{STAGE}.jiffy-team.com/orders/v2/orders/new",
 }
 
+
 class DeliveryUser(HttpUser):
-    wait_time = between(1, 5)  # Интервал между задачами - то есть 1 секунда между запросом для каждого пользователя нагрузочного теста - НЕ курьеры
+    wait_time = constant(1)  # Интервал между задачами - то есть 1 секунда между запросом для каждого пользователя нагрузочного теста - НЕ курьеры
     host = f"https://api2-{STAGE}.jiffy-team.com"  # Базовый URL
 
     def on_start(self):
@@ -84,16 +87,6 @@ class DeliveryUser(HttpUser):
             self.handle_picking_up(active_jobs)
         elif courier_status == "DELIVERING":
             self.handle_delivering(active_jobs)
-
-    @task(8)  # Создание заказов (вес 1, реже выполняется) - описал выше в таске с весом 10
-    def create_order(self):
-        # Создание заказа
-        headers = self.get_headers()
-        headers["idempotency-key"] = str(uuid.uuid4())
-        headers["authorization"] = verify_customer()
-        with self.client.post(URL["CREATE_ORDER"], json=CREATE_ORDER_DATA, headers=headers, name="create_order", catch_response=True) as resp:
-            if resp.status_code != 200:
-                resp.failure(f"Create order failed: {resp.text}")
 
     # Методы для обработки статусов
     def mark_online(self):

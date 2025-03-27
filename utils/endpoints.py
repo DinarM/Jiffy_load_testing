@@ -79,7 +79,12 @@ async def couriers_info(session, authorization_token):
     url = URL.COURIERS_INFO
 
     async with session.get(url, headers=headers) as response:
-        return await response.json()
+        data = await response.json()
+        if response.status == 200:
+            return data
+        else:
+            print(f'Ошибка завершения заказа. HTTP статус: {response.status}. Тело ответа {await response.json()} хедер {authorization_token}')
+            return None
 
 
 async def mark_online(session, authorization_token):
@@ -450,3 +455,4 @@ async def finish_order(session, authorization_token, order_id, barcode='2'):
         else:
             print(f'Ошибка завершения заказа. HTTP статус: {response.status}. Тело ответа {await response.json()}')
             return None
+
