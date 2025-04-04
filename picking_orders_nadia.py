@@ -24,7 +24,7 @@ async def start_process(session, picker_code):
     if token is None:
         print('Не удалось получить токен, дальнейшие запросы не выполняются.')
         return
-    await warehouse_auth(session, authorization_token=token, warehouse_code='VAN1')
+    await warehouse_auth(session, authorization_token=token, warehouse_code='NSK1')
 
     unfinished_orders = await get_unfinished_orders(session, authorization_token=token)
     # print(f'unfinished_orders: {unfinished_orders['data']}')
@@ -47,8 +47,7 @@ async def start_process(session, picker_code):
 #         await start_process(session, picker_code)
 
 async def main():
-    # picker_codes = ['JIFFN4GAPJ',]
-    picker_codes = ['JIFFN4GA7G',]
+    picker_codes = ['JIFFW5EZHU']
     # picker_codes = ['JIFFN4GA7G', 'JIFFN4GA85', 'JIFFN4GA8W', 'JIFFN4GA9K', 'JIFFN4GAAM', 'JIFFN4GAB9', 'JIFFN4GACF']
     # picker_codes = ['JIFFN4GA7G', 'JIFFN4GA85', 'JIFFN4GA8W', 'JIFFN4GA9K', 'JIFFN4GAAM', 'JIFFN4GAB9', 'JIFFN4GACF', 'JIFFN4GADD', 'JIFFN4GAEE', 'JIFFN4GAFV', 'JIFFN4GAGH', 'JIFFN4GAH9', 'JIFFN4GAHT', 'JIFFN4GAIQ', 'JIFFN4GAJD', 'JIFFN4GAZZ', 'JIFFN4GB0P', 'JIFFN4GB1O', 'JIFFN4DR3L', 'JIFFN4DR4W', 'JIFFN4DR5Y', 'JIFFN4DR6W', 'JIFFN4DR7T', 'JIFFN4DR97', 'JIFFN4DRAH', 'JIFFN4DRBN', 'JIFFN4DRCO', 'JIFFN4G9Y1', 'JIFFN4G9ZI', 'JIFFN4GA1R', 'JIFFN4GA2V', 'JIFFN4GA3K', 'JIFFN4GA4M', 'JIFFN4GA5T', 'JIFFN4GAO3', 'JIFFN4GAQJ', 'JIFFN4GARC', 'JIFFN4GAS7', 'JIFFN4GATD', 'JIFFN4GAUI', 'JIFFN4GAVG', 'JIFFN4GAW9', 'JIFFN4GAX4', 'JIFFN4GAYN', 'JIFFN4DR25', 'JIFFN4G9XA', 'JIFFN4GAK0', 'JIFFN4GAKS', 'JIFFN4GALR', 'JIFFN4GAMH', 'JIFFN4GANB', 'JIFFN4GAOP', 'JIFFN4GAPJ']
     duration = 60000
@@ -59,7 +58,7 @@ async def main():
             for picker_code in picker_codes:
                 tasks.append(start_process(session, picker_code))
             await asyncio.gather(*tasks)
-            await asyncio.sleep(3)
+            await asyncio.sleep(2)
 
 if __name__ == '__main__':
     asyncio.run(main())

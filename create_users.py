@@ -6,7 +6,7 @@ def create_users(num_requests):
     # URL и заголовки запроса
     url = "https://api2-stage.jiffy-team.com/auth/v1/users"
     headers = {
-        "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI3OTU0NjhmMi05NzViLTRkNGItYjViMy1kYjc3NWExY2I3MzMiLCJjb21wYW55SWQiOiIxZWI1M2ExMy01ZjllLTRkZWItOTJkNy0wOTBhNGI1M2ZkMjEiLCJyb2xlcyI6WyJhZG1pbiJdLCJpYXQiOjE3NDI4MjM2NDQsImV4cCI6MTc0MjgyNDU0NH0.tuJWEkybY06SZ1xBo-GDI6Y0ti0DHcDl5u49R_PVyhw",
+        "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI3OTU0NjhmMi05NzViLTRkNGItYjViMy1kYjc3NWExY2I3MzMiLCJjb21wYW55SWQiOiIxZWI1M2ExMy01ZjllLTRkZWItOTJkNy0wOTBhNGI1M2ZkMjEiLCJyb2xlcyI6WyJhZG1pbiJdLCJpYXQiOjE3NDM0MjE4MTgsImV4cCI6MTc0MzQyMjcxOH0.sWEr_bn1d4lz19OGdg3Id51sC65UTaoJsIqAAAFNiRc",
         "Content-Type": "application/json"
     }
 

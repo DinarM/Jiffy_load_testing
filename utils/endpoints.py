@@ -66,8 +66,9 @@ async def send_request(session, task_id, authorization_token):
     url = URL.CREATE_ORDER
 
     async with session.post(url, headers=headers, json=DATA.CREATE_ORDER_DATA) as response:
-        text = await response.json()
-        print(f'Task {task_id}: Status {response.status}, Response: {text}')
+        if response.status != 200:
+            text = await response.json()
+            print(f'Status failed: {response.status}, Response: {text}')
 
 
 async def couriers_info(session, authorization_token):
